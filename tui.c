@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 
 #include <termios.h>
 
@@ -20,6 +21,12 @@ static void resetTermios(void) {
   tcsetattr(0, TCSANOW, &old);
 }
 
+void clear_scr(void) {
+    fputs("\033[2J\033[1;1H", stdout);
+    rewind(stdout);
+    ftruncate(1,0);
+}
+
 /* grabs keyboard keypress */
 char getch() {
   char ch;
@@ -29,11 +36,11 @@ char getch() {
   return ch;
 }
 
-int select_col(struct game *game) {
+int select_col(struct game *game, int gamer) {
     char c;
     int selected_col = 0;
     do {
-        render_game(game, selected_col);
+        render_game(game, selected_col, gamer);
         c = getch();
         switch(c) {
             case 'h':
@@ -55,7 +62,11 @@ force_quit:
 
 /* selected col is 0 indexed
  * if selected col is < 0 the selector isn't rendered */
-void render_game(struct game *game, int selected_col) {
+void render_game(struct game *game, int selected_col, int gamer) {
+    clear_scr();
+    if(game > 0) {
+        printf("Player%d\'s turn\n", gamer);
+    }
     if(selected_col >= 0) {
         for(int i = 0; i < selected_col; i++) printf("   ");
         puts(" ╲╱");

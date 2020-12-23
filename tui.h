@@ -11,19 +11,16 @@
 #define PLAYER_X "🮥🮤"
 #define PLAYER_O "()"
 
-static void initTermios(int echo);
-
-/* Restore old terminal i/o settings */
-static void resetTermios(void);
-
 /* grabs keyboard keypress */
 char getch();
 
-int select_col(struct game *game);
+int select_col(struct game *game, int gamer);
+
+void clear_scr(void);
 
 /* selected col is 0 indexed
  * if selected col is < 0 the selector isn't rendered */
-void render_game(struct game *game, int selected_col);
+void render_game(struct game *game, int selected_col, int gamer);
 
 #endif
 
