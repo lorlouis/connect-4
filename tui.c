@@ -22,9 +22,11 @@ static void resetTermios(void) {
 }
 
 void clear_scr(void) {
+    /*
     fputs("\033[2J\033[1;1H", stdout);
     rewind(stdout);
-    ftruncate(1,0);
+    ftruncate(1,0); */
+    printf("\e[1;1H\e[2J");
 }
 
 /* grabs keyboard keypress */
@@ -38,7 +40,7 @@ char getch() {
 
 int select_col(struct game *game, int gamer) {
     char c;
-    int selected_col = 0;
+    int selected_col = COL_WIDTH / 2;
     do {
         render_game(game, selected_col, gamer);
         c = getch();
@@ -49,7 +51,7 @@ int select_col(struct game *game, int gamer) {
                 break;
             case 'l':
             case 'd':
-                if(selected_col < ROW_WIDTH-1) selected_col++;
+                if(selected_col < COL_WIDTH-1) selected_col++;
                 break;
             case 'q':
                 goto force_quit;
@@ -72,10 +74,10 @@ void render_game(struct game *game, int selected_col, int gamer) {
         puts(" ╲╱");
     }
 
-    for(int y = 0; y < COL_WIDTH; y++) {
+    for(int y = 0; y < ROW_WIDTH; y++) {
         putchar('|');
-        for(int x = 0; x < ROW_WIDTH; x++) {
-            switch(game->field[x][y]) {
+        for(int x = 0; x < COL_WIDTH; x++) {
+            switch(game->field[y][x]) {
                 case(0):
                     printf("%s", EMPTY_STR);
                     break;
