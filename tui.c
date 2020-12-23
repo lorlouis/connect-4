@@ -64,7 +64,7 @@ force_quit:
  * if selected col is < 0 the selector isn't rendered */
 void render_game(struct game *game, int selected_col, int gamer) {
     clear_scr();
-    if(game > 0) {
+    if(gamer > 0) {
         printf("Player%d\'s turn\n", gamer);
     }
     if(selected_col >= 0) {

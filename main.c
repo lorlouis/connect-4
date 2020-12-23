@@ -8,8 +8,9 @@ int main(int argc, const char **argv) {
     /* THE game */
     struct game the_game = {0};
     int cur_player = 1;
-    while(the_game.winning_son == 0) {
-        int insert_rval=-1;
+    /* TEMPORARY FIXME */
+    while(the_game.winning_son == 0 || 1) {
+        int insert_rval;
         do {
             int selected_col;
             /* draw the screen */
@@ -27,6 +28,8 @@ int main(int argc, const char **argv) {
         } while(insert_rval == -1);
         cur_player = (cur_player % 2) + 1;
     }
+
+    render_game(&the_game, -1, -1);
 
     if(the_game.winning_son == -1) {
         puts("Draw");
