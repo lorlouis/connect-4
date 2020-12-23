@@ -6,10 +6,10 @@ int insert_stuff(struct game *game, char gamer, int y)
 {
     int x = ROW_WIDTH - 1;
     //check the y for some obvious reason, anta baka!
-    if(y >= COL_WIDTH - 1 || y<=0)
+    if(y >= COL_WIDTH || y < 0)
         return -1;
     //check the gamer cause NULL is not a gamer
-    if(gamer == 0)
+    if(gamer <= 0)
         return -1;
     //check if the row is full
     if(game->field[x][y] != 0)

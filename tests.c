@@ -1,19 +1,48 @@
 #include <assert.h>
 
 #include "tests.h"
+#include "con4.h"
 
-void test_method() {
-    assert(1 == 1);
+//check insert if row is full
+void testing_insert_stuff_1()
+{
+    struct game game = {0};
+
+    for(int i = 0; i < ROW_WIDTH; ++i)
+    {
+        game.field[i][0] = (i % 2) + 1;
+    }
+
+    assert(insert_stuff(&game, 1, 0) == -1);
 }
 
-void test_method2() {
-    assert(1 == 2);
+//test out of bound
+void testing_out_of_bound()
+{
+    struct game game = {0};
+
+    assert(insert_stuff(&game, 1, -1) == -1);
+
+    assert(insert_stuff(&game, 1, COL_WIDTH) == -1);
 }
 
+//test gamer validity
+void testing_gamer_validity()
+{
+    struct game game = {0};
+
+    assert(insert_stuff(&game, 0, 0) == -1);
+
+    assert(insert_stuff(&game, -1, 0) == -1);
+
+    assert(insert_stuff(&game, 1, 0) == 0);
+}
 
 int main() {
-    testing("Testing 1==1", test_method);
+    testing("Testing insert_stuff when ROW is full", testing_insert_stuff_1);
 
-    testing("Testing 1==2", test_method2);
+    testing("Testing insert_stuff out of bound", testing_out_of_bound);
+
+    testing("Testing insert_stuff gamer validity", testing_gamer_validity);
     return 0;
 }
