@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 
+#include "net.h"
 
-#define PORT 8080
 
 /* returns -1 on error, check perror for more info */
 int listen_for_sock_fd(int port) {

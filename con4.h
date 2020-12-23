@@ -13,7 +13,7 @@ struct game {
 /* gamer > 0
  * y >= 0
  * y <= 6
- * return -1 if not able to comply else 0 */
+ * return -1 si pas capable d'insert  autrement 0 */
 int insert_stuff(char gamer, int y);
 
 #endif
