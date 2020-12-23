@@ -14,6 +14,6 @@ struct game {
  * y >= 0
  * y <= 6
  * return -1 si pas capable d'insert  autrement 0 */
-int insert_stuff(int gamer, int y);
+int insert_stuff(char gamer, int y);
 
 #endif
