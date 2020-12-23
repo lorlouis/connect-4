@@ -1,5 +1,5 @@
-OBJS	= main.o client.o serv.o con4.o
-SOURCE	= main.c client.c serv.c con4.c
+OBJS	= main.o client.o serv.o con4.o tui.o
+SOURCE	= main.c client.c serv.c con4.c tui.c
 HEADER	=
 OUT	= a.out
 CC	= gcc

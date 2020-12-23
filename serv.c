@@ -1,10 +1,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 
+#include "net.h"
+#include "con4.h"
 
-#define PORT 8080
 
 /* returns -1 on error, check perror for more info */
 int listen_for_sock_fd(int port) {
@@ -36,4 +38,15 @@ int listen_for_sock_fd(int port) {
         return -1;
     }
     return new_sock;
+}
+
+int push_game(struct game *game, int current_gamer, int sock_fd) {
+    struct net_game net_game;
+    memcpy(&net_game.game, game, sizeof(struct game));
+    net_game.current_gamer = current_gamer;
+
+    if(send(sock_fd, &net_game, sizeof(struct net_game), 0) < 0) {
+        return -1;
+    }
+    return 0;
 }
