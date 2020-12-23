@@ -65,11 +65,11 @@ void testing_if_it_write()
 //test if no winner when table empty
 void testing_winning_empty_table()
 {
-    //struct game game = {0};
+    struct game game = {0};
 
-    //game.field[0][0] = 1;
+    game.field[0][0] = 1;
 
-    //assert(r_ya_winning_son(&game, 0, 0, 1) == 0);
+    assert(r_ya_winning_son(&game, 0, 0, 1) == 0);
 }
 
 int main() {
