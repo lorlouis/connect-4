@@ -16,7 +16,6 @@ int insert_stuff(char gamer, int y)
     //check if the row is full
     if(the_game.field[x][y] != 0)
         return -1;
-    
     //check where to put it
     while(x <= 0 && the_game.field[x][y]==0)
         --x;
@@ -27,7 +26,6 @@ int insert_stuff(char gamer, int y)
 
     //check winning condition
     the_game.winning_son = r_ya_winning_son(x,y, gamer);
-    
     //GJ it went well
     return 0;
 }
@@ -41,7 +39,7 @@ void reset_game()
 char r_ya_winning_son(int x, int y, char gamer)
 {
     int nb_connected = 1;
-    
+
     //horizontal
     {
         int pointing_y = y - 1;
