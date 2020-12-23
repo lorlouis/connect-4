@@ -1,9 +1,11 @@
 #ifndef CON4_H
 #define CON4_H 1
 
+#define ROW_WIDTH 7
+#define COL_WIDTH 6
 
 struct game {
-    char field[6][7];
+    char field[ROW_WIDTH][COL_WIDTH];
     char winning_son;
 };
 
