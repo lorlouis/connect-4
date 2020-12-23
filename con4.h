@@ -1,8 +1,8 @@
 #ifndef CON4_H
 #define CON4_H 1
 
-#define ROW_WIDTH 7
-#define COL_WIDTH 6
+#define ROW_WIDTH 6
+#define COL_WIDTH 7
 
 struct game {
     char field[ROW_WIDTH][COL_WIDTH];
