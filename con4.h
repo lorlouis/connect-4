@@ -16,4 +16,13 @@ struct game {
  * return -1 if not able to comply else 0 */
 int insert_stuff(char gamer, int y);
 
+/* reset the game to initial values (0s everywhere)*/
+void reset_game();
+
+/* check winning condition
+ * 0 no one wins
+ * -1 NULL game
+ * >0 YA WINNING SON (return the winning gamer)*/
+char r_ya_winning_son(int x, int y, char gamer);
+
 #endif
