@@ -4,7 +4,7 @@
 
 int insert_stuff(struct game *game, char gamer, int y)
 {
-    int x = ROW_WIDTH - 1;
+    int x = 0;
     //check the y for some obvious reason, anta baka!
     if(y >= COL_WIDTH || y < 0)
         return -1;
@@ -15,22 +15,22 @@ int insert_stuff(struct game *game, char gamer, int y)
     if(game->field[x][y] != 0)
         return -1;
     //check where to put it
-    while(x <= 0 && game->field[x][y]==0)
-        --x;
-    ++x;
+    while(x < ROW_WIDTH && game->field[x][y]==0)
+        ++x;
+    --x;
 
     //put gamer in the thing in
     game->field[x][y] = gamer;
 
     //check winning condition
-    game->winning_son = r_ya_winning_son(game, x,y, gamer);
+    game->winning_son = r_ya_winning_son(game, x, y, gamer);
     //GJ it went well
     return 0;
 }
 
 void reset_game(struct game *game)
 {
-    memset(game->field, 0, sizeof(char)*(ROW_WIDTH*COL_WIDTH));
+    memset(game->field, 0, sizeof(char)*(ROW_WIDTH * COL_WIDTH));
     game->winning_son = 0;
 }
 

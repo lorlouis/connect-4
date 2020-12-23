@@ -8,7 +8,7 @@ void testing_insert_stuff_1()
 {
     struct game game = {0};
 
-    for(int i = 0; i < ROW_WIDTH; ++i)
+    for(int i = ROW_WIDTH - 1; i >= 0; --i)
     {
         game.field[i][0] = (i % 2) + 1;
     }
@@ -35,7 +35,7 @@ void testing_gamer_validity()
 
     assert(insert_stuff(&game, -1, 0) == -1);
 
-    assert(insert_stuff(&game, 1, 0) == 0);
+    assert(insert_stuff(&game, 18, 0) == 0);
 }
 
 void testing_max_y_value()
@@ -52,20 +52,22 @@ void testing_mid_y_value()
     assert(insert_stuff(&game, 1, COL_WIDTH / 2) == 0);
 }
 
+//testing writting capababilties of insert_stuff()
 void testing_if_it_write()
 {
     struct game game = {0};
 
     insert_stuff(&game, 1, 0);
 
-    assert(game.field[0][0] == 1);
+    assert(game.field[ROW_WIDTH - 1][0] == 1);
 }
 
+//test if no winner when table empty
 void testing_winning_empty_table()
 {
-    struct game game = {0};
+    //struct game game = {0};
 
-    game.field[0][0] = 1;
+    //game.field[0][0] = 1;
 
     //assert(r_ya_winning_son(&game, 0, 0, 1) == 0);
 }
