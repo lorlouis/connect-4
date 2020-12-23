@@ -9,7 +9,7 @@ int main(int argc, const char **argv) {
     struct game the_game = {0};
     int cur_player = 1;
     /* TEMPORARY FIXME */
-    while(the_game.winning_son == 0 || 1) {
+    while(the_game.winning_son == 0) {
         int insert_rval;
         do {
             int selected_col;
