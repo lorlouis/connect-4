@@ -21,6 +21,7 @@ int main(int argc, const char **argv) {
             /* make sure the move is valid */
             insert_rval = insert_stuff(&the_game, cur_player, selected_col);
             if(insert_rval == -1) {
+                printf("%d\n", selected_col);
                 puts("Invalid placement, try another column\n"
                      "press any key to continue");
                 getch();
