@@ -10,4 +10,8 @@ struct net_game {
     struct game game;
 };
 
+int connect_for_sock_fd(char *addr, int port);
+
+int listen_for_sock_fd(int port);
+
 #endif
