@@ -62,7 +62,7 @@ char r_ya_winning_son(struct game *game, int x, int y, char gamer)
     //vertical
     {
         int pointing_x = x + 1;
-        while(pointing_x > ROW_WIDTH && nb_connected < 4
+        while(pointing_x < ROW_WIDTH && nb_connected < 4
                 && game->field[pointing_x][y] == gamer)
         {
             ++pointing_x;
@@ -130,7 +130,7 @@ char r_ya_winning_son(struct game *game, int x, int y, char gamer)
         int i = 0;
         while(null_check == 1 && i < COL_WIDTH)
         {
-            if(game->field[ROW_WIDTH-1][i] == 0)
+            if(game->field[0][i] == 0)
                 null_check = 0;
             ++i;
         }

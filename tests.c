@@ -72,6 +72,61 @@ void testing_winning_empty_table()
     assert(r_ya_winning_son(&game, 0, 0, 1) == 0);
 }
 
+void testing_null_game()
+{
+    struct game game = {0};
+
+    for(int i = 0; i < COL_WIDTH; ++i)
+    {
+        game.field[0][i] = (i % 2) + 1;
+    }
+
+    assert(r_ya_winning_son(&game, 0, 0, 1) == -1);
+}
+
+//test for vertical win condition
+void testing_vertical_win()
+{
+    struct game game = {0};
+
+    for(int i = 0; i <= 4; ++i)
+    {
+        game.field[i][0] = 1;
+    }
+
+    assert(r_ya_winning_son(&game, 0, 0, 1) == 1);
+}
+
+//like other kinda self explaina...
+void testing_horrizontal_win()
+{
+    struct game game = {0};
+
+    for(int i = 0; i < 4; ++i)
+    {
+        game.field[3][i] = 1;
+    }
+
+    assert(r_ya_winning_son(&game, 3, 1, 1) == 1);
+}
+
+//testing diag win condition
+void testing_diag_win()
+{
+    struct game game = {0};
+    int i;
+
+    for(i = 0; i < 4; ++i)
+    {
+        game.field[i][i] = 1;
+        game.field[ROW_WIDTH - 1 - i][COL_WIDTH - 1 - i] = 2;
+    }
+
+    assert(r_ya_winning_son(&game, 1, 1, 1) == 1);
+    assert(r_ya_winning_son(&game, ROW_WIDTH - i, COL_WIDTH - i, 2) == 2);
+}
+
+//ANTA BAKA, WHY ARE READING DIS?!?!?! BAAAAAKA!
 int main() {
     testing("Testing insert_stuff when ROW is full", testing_insert_stuff_1);
 
@@ -87,6 +142,13 @@ int main() {
 
     testing("Testing r_ya_winning_son empty table", 
             testing_winning_empty_table);
+
+    testing("Testing for NULL game", testing_null_game);
     
+    testing("Testing vertical win", testing_vertical_win);
+    
+    testing("Testing horrizontal win", testing_horrizontal_win);
+    
+    testing("Testing diag win", testing_diag_win);
     return 0;
 }
