@@ -7,7 +7,6 @@
 #include "net.h"
 #include "con4.h"
 
-
 /* returns -1 on error, check perror for more info */
 int listen_for_sock_fd(int port) {
     int server_fd, new_sock;
@@ -31,6 +30,10 @@ int listen_for_sock_fd(int port) {
     address.sin_port = htons(port);
 
     if(bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
+        return -1;
+    }
+    if (listen(server_fd, 3) < 0) 
+    {
         return -1;
     }
     if((new_sock = accept(server_fd, (struct sockaddr *)&address,
