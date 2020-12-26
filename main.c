@@ -52,7 +52,7 @@ void client_game_loop(int sv_sock) {
         clear_scr();
         puts("Waiting for Player1 to finish");
         if(recv(sv_sock, &the_game, sizeof(struct game), MSG_WAITALL) != sizeof(struct game)) {
-            puts("Could not download the field from the server");
+            puts("The connection was closed by the server");
             exit(EXIT_FAILURE);
         }
         if(the_game.winning_son != 0) {
@@ -72,8 +72,15 @@ void client_game_loop(int sv_sock) {
                 return;
             }
             /* TODO handle error */
-            send(sv_sock, &selected_col, sizeof(selected_col), 0);
-            recv(sv_sock, &sv_ack_move_valid, sizeof(sv_ack_move_valid), MSG_WAITALL);
+            if(send(sv_sock, &selected_col, sizeof(selected_col), 0) < 0) {
+                perror("");
+                return;
+            }
+
+            if(recv(sv_sock, &sv_ack_move_valid, sizeof(sv_ack_move_valid), MSG_WAITALL) < 0) {
+                perror("");
+                return;
+            }
             if(sv_ack_move_valid != 0) {
                 printf("%d\n", selected_col);
                 puts("Invalid placement, try another column\n"
@@ -117,21 +124,33 @@ void server_game_loop(int p2_sock) {
                     getch();
                 }
             } while(insert_rval == -1);
+            clear_scr();
         }
         else {
-            clear_scr();
             puts("waiting for Player2's turn to finish");
             /* send stuff to client */
-            send(p2_sock, &the_game, sizeof(struct game), 0);
+            if(send(p2_sock, &the_game, sizeof(struct game), 0) < 0) {
+                perror("");
+                return;
+            }
             do {
+                int recv_val = recv(p2_sock, &selected_col, sizeof(selected_col), MSG_WAITALL);
                 /* wait for client to send col num*/
-                if(recv(p2_sock, &selected_col, sizeof(selected_col), MSG_WAITALL) < 0) {
-                    /* TODO handle error */
+                if(recv_val < 0) {
+                    perror("");
+                    return;
+                }
+                if(recv_val == 0) {
+                    puts("The client closed the connection");
+                    return;
                 }
                 /* test the placement */
                 insert_rval = insert_stuff(&the_game, cur_player, selected_col);
                 /* send if it worked or not */
-                send(p2_sock, &insert_rval, sizeof(insert_rval), 0);
+                if(send(p2_sock, &insert_rval, sizeof(insert_rval), 0) < 0) {
+                    perror("");
+                    return;
+                }
             } while(insert_rval == -1);
         }
         cur_player = (cur_player % 2) + 1;
@@ -158,7 +177,7 @@ int main(int argc, const char **argv) {
         exit(EXIT_SUCCESS);
     }
     if(argc != 3) {
-        puts("args: [-s <port> | -c <ip:port>]");
+        puts("Usage: [-s <port> | -c <ip:port>]");
         exit(EXIT_FAILURE);
     }
     if(!strcmp(argv[1], "-s")) {
@@ -211,7 +230,8 @@ int main(int argc, const char **argv) {
     }
     else {
         printf("invalid argument %s\n", argv[1]);
-        return EXIT_FAILURE;
+        puts("Usage: [-s <port> | -c <ip:port>]");
+        exit(EXIT_FAILURE);
     }
     return EXIT_SUCCESS;
 }
