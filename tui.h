@@ -8,8 +8,8 @@
 #include "con4.h"
 
 #define EMPTY_STR "  "
-#define PLAYER_X "🮥🮤"
-#define PLAYER_O "()"
+#define PLAYER_X "██"
+#define PLAYER_O "▒▒"
 
 /* grabs keyboard keypress */
 char getch();

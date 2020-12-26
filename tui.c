@@ -71,7 +71,7 @@ void render_game(struct game *game, int selected_col, int gamer) {
     }
     if(selected_col >= 0) {
         for(int i = 0; i < selected_col; i++) printf("   ");
-        puts(" ╲╱");
+        puts(" \\/");
     }
 
     for(int y = 0; y < ROW_WIDTH; y++) {
