@@ -111,21 +111,19 @@ void client_game_loop(int sv_sock) {
 void server_game_loop(int p2_sock) {
     /* THE game */
     struct game the_game = {0};
-    int cur_player = 1;
     while(the_game.winning_son == 0) {
         int insert_rval;
         int selected_col;
-        if(cur_player == 1) {
             do {
                 /* draw the screen */
-                if((selected_col = select_col(&the_game, cur_player)) < 0) {
-                    printf("Player %d, cancelled the game\n", cur_player);
+                if((selected_col = select_col(&the_game, 1)) < 0) {
+                    printf("Player %d, cancelled the game\n", 1);
                     /* TODO tell the player on the other
                      * side that the game was closed */
                     return;
                 }
                 /* make sure the move is valid */
-                insert_rval = insert_stuff(&the_game, cur_player, selected_col);
+                insert_rval = insert_stuff(&the_game, 1, selected_col);
                 if(insert_rval == -1) {
                     printf("%d\n", selected_col);
                     puts("Invalid placement, try another column\n"
@@ -134,8 +132,6 @@ void server_game_loop(int p2_sock) {
                 }
             } while(insert_rval == -1);
             clrscr();
-        }
-        else {
             puts("waiting for Player2's turn to finish");
             /* send stuff to client */
             if(send(p2_sock, &the_game, sizeof(struct game), 0) < 0) {
@@ -154,15 +150,13 @@ void server_game_loop(int p2_sock) {
                     return;
                 }
                 /* test the placement */
-                insert_rval = insert_stuff(&the_game, cur_player, selected_col);
+                insert_rval = insert_stuff(&the_game, 2, selected_col);
                 /* send if it worked or not */
                 if(send(p2_sock, &insert_rval, sizeof(insert_rval), 0) < 0) {
                     perror("");
                     return;
                 }
             } while(insert_rval == -1);
-        }
-        cur_player = (cur_player % 2) + 1;
     }
     send(p2_sock, &the_game, sizeof(struct game), 0);
     render_game(&the_game, -1, -1);
@@ -222,7 +216,12 @@ int main(int argc, const char **argv) {
 
     }
     else if(!strcmp(argv[1], "-c")) {
-        char *str = malloc((strlen(argv[2])+1) * sizeof(char));
+
+        if (strlen(argv[2]) > 20) {
+            puts("A the server's ip must be 20 characters max");
+            return EXIT_FAILURE;
+        }
+        char str[21] = {0};
         memcpy(str, argv[2], (strlen(argv[2])+1) * sizeof(char));
         /* TODO remove the malloc and use an array since the size io the input is known */
         char *ip_str, *port_str;
@@ -234,13 +233,11 @@ int main(int argc, const char **argv) {
             printf("Could not parse \"%s\"\n"
                     "Use the format \"ipv4:port\" with the -c option\n",
                     argv[2]);
-            free(str);
             return EXIT_FAILURE;
         }
         if((port = atoi(port_str)) == 0 || port < 1024) {
             printf("%s, is not a valid port number between 1024 and 65535\n",
                    port_str);
-            free(str);
             return EXIT_FAILURE;
         }
 #ifdef _WIN32
@@ -257,14 +254,12 @@ int main(int argc, const char **argv) {
         if(sv_sock < 0) {
             printf("Could not connect to server at %s\n", argv[2]);
             perror("");
-            free(str);
 #ifdef _WIN32
             WSACleanup();
 #endif
             return EXIT_FAILURE;
         }
         client_game_loop(sv_sock);
-        free(str);
 #ifdef _WIN32
         closesocket(sv_sock);
         WSACleanup();
