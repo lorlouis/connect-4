@@ -10,7 +10,6 @@
 
 Open the .sln file in visualstudio and click on build
 
-
 ## How to play
 
 ### Controls
