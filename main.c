@@ -1,9 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+
+#ifdef _WIN32
+#pragma comment(lib, "Ws2_32.lib")
+#include <winsock2.h>
+#include <io.h>
+#define clrscr() system("cls")
+#else
 
 #include <sys/socket.h>
+#include <unistd.h>
+#endif
 
 #include "con4.h"
 #include "tui.h"
@@ -49,7 +58,7 @@ void client_game_loop(int sv_sock) {
     struct game the_game = {0};
     /* get game from server */
     while(1) {
-        clear_scr();
+        clrscr();
         puts("Waiting for Player1 to finish");
         if(recv(sv_sock, &the_game, sizeof(struct game), MSG_WAITALL) != sizeof(struct game)) {
             puts("The connection was closed by the server");
@@ -124,7 +133,7 @@ void server_game_loop(int p2_sock) {
                     getch();
                 }
             } while(insert_rval == -1);
-            clear_scr();
+            clrscr();
         }
         else {
             puts("waiting for Player2's turn to finish");
@@ -187,18 +196,35 @@ int main(int argc, const char **argv) {
             exit(EXIT_FAILURE);
         }
         puts("Waiting for Player2 to connect");
-        int p2_sock = listen_for_sock_fd(portnum);
+#ifdef _WIN32
+        WSADATA wsa_data;
+        SOCKET p2_sock = INVALID_SOCKET;
+        if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
+            puts("Could not start socket");
+            return EXIT_FAILURE;
+    }
+#else
+        int p2_sock;
+#endif
+        p2_sock = listen_for_sock_fd(portnum);
         if(p2_sock < 0) {
             puts("An error occured when waiting for player 2");
             perror("");
             exit(EXIT_FAILURE);
         }
         server_game_loop(p2_sock);
+#ifdef _WIN32
+        closesocket(p2_sock);
+        WSACleanup();
+#else
         close(p2_sock);
+#endif
+
     }
     else if(!strcmp(argv[1], "-c")) {
         char *str = malloc((strlen(argv[2])+1) * sizeof(char));
         memcpy(str, argv[2], (strlen(argv[2])+1) * sizeof(char));
+        /* TODO remove the malloc and use an array since the size io the input is known */
         char *ip_str, *port_str;
         int port;
         ip_str = strtok(str, ":");
@@ -217,16 +243,34 @@ int main(int argc, const char **argv) {
             free(str);
             return EXIT_FAILURE;
         }
+#ifdef _WIN32
+        WSADATA wsa_data;
+        SOCKET sv_sock = INVALID_SOCKET;
+        if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
+            puts("Could not start socket");
+            return EXIT_FAILURE;
+        }
+#else
         int sv_sock;
+#endif
         sv_sock = connect_for_sock_fd(ip_str, port);
         if(sv_sock < 0) {
             printf("Could not connect to server at %s\n", argv[2]);
             perror("");
             free(str);
+#ifdef _WIN32
+            WSACleanup();
+#endif
             return EXIT_FAILURE;
         }
         client_game_loop(sv_sock);
         free(str);
+#ifdef _WIN32
+        closesocket(sv_sock);
+        WSACleanup();
+#else
+        close(sv_sock);
+#endif
     }
     else {
         printf("invalid argument %s\n", argv[1]);

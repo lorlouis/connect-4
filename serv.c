@@ -1,7 +1,19 @@
+#ifdef _WIN32
+
+#include <winsock2.h>
+#include <io.h>
+#include <ws2tcpip.h>
+
+#define SO_REUSEPORT 0
+
+#else
+
 #include <sys/socket.h>
 #include <netinet/in.h>
-
 #include <unistd.h>
+
+#endif
+
 #include <string.h>
 
 #include "net.h"
@@ -17,7 +29,6 @@ int listen_for_sock_fd(int port) {
     if(!(server_fd = socket(AF_INET, SOCK_STREAM, 0))) {
         return -1;
     }
-
     /* bind */
     if(setsockopt(
             server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
