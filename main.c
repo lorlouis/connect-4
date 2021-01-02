@@ -131,6 +131,7 @@ void server_game_loop(int p2_sock) {
                     getch();
                 }
             } while(insert_rval == -1);
+            if(the_game.winning_son != 0) break;
             clrscr();
             puts("waiting for Player2's turn to finish");
             /* send stuff to client */
