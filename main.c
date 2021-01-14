@@ -81,7 +81,6 @@ void client_game_loop(int sv_sock, char player_num) {
                 }
             }
             else {
-                /* draw the screen */
                 if (select_col_net(&(the_game), &net_dat) < 0) {
                     /* TODO tell the player on the other
                     * side that the game was closed */

@@ -16,7 +16,7 @@ Open the .sln file in visualstudio and click on build
 
 | Move Left | Move Right | Select | Quit |
 |:---------:|:----------:|:------:|:----:|
-| a or h | d or l | enter | q |
+| a or h | d or l | space | q |
 
 ### Local Multiplayer
 
