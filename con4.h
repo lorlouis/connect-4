@@ -6,6 +6,7 @@
 
 struct game {
     char field[ROW_WIDTH][COL_WIDTH];
+    char current_gamer;
     char winning_son;
 };
 

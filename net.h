@@ -5,9 +5,10 @@
 
 #define PORT 8080
 
-struct net_game {
-    char current_gamer;
-    struct game game;
+struct net_dat {
+    int col;
+    int is_push;
+    int is_accept;
 };
 
 int connect_for_sock_fd(char *addr, int port);
