@@ -8,10 +8,13 @@
 #include <winsock2.h>
 #include <io.h>
 #define clrscr() system("cls")
+
 #else
 
+#include <termios.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #endif
 
 #include "con4.h"
@@ -71,6 +74,12 @@ void client_game_loop(int sv_sock, char player_num) {
             break;
         }
         do {
+#ifdef _WIN32
+            /* TODO implement the equivalent of tcflush for windows */
+#else
+            /* FIXME posix only code, needs to be fixed on windows */
+            tcflush(stdin->_fileno, TCIFLUSH);
+#endif
             if(the_game.current_gamer != player_num) {
                 if(recv(sv_sock, &net_dat, sizeof(struct net_dat), MSG_WAITALL) != sizeof(struct net_dat)) {
                     perror("");
@@ -232,6 +241,7 @@ int main(int argc, const char **argv) {
         WSACleanup();
 #endif
     }
+    /* code to start a server */
     else if(!strcmp(argv[1], "-c")) {
 
         if (strlen(argv[2]) > 20) {

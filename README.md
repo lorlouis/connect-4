@@ -24,7 +24,7 @@ simply run con4
 
 ### Online Multiplayer
 
-#### Server
+#### Dedicated Server
 
 run `con4 -s <Port Number>`
 
@@ -33,6 +33,9 @@ make sure to forward the port on your router
 
 #### Client
 
-Once the server is waiting for player 2,
+Once the server is running, connect to it by running
 
-run `con4 -c <The server's IP>:<Port Number>`
+`con4 -c <The server's IP>:<Port Number>`
+
+If the server is running on the same machine you want
+to run the client(s) connect to it via 127.0.0.1.
