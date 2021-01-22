@@ -14,6 +14,7 @@
 #include <termios.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <signal.h>
 
 #endif
 
@@ -32,7 +33,7 @@ void couch_game_loop() {
             /* draw the screen */
             if((selected_col = select_col(&the_game)) < 0) {
                 printf("Player %d, cancelled the game\n", the_game.current_gamer);
-                exit(EXIT_SUCCESS);
+                return;
             }
             /* make sure the move is valid */
             insert_rval = insert_stuff(&the_game, the_game.current_gamer, selected_col);
@@ -64,7 +65,7 @@ void client_game_loop(int sv_sock, char player_num) {
         clrscr();
         if(recv(sv_sock, &the_game, sizeof(struct game), MSG_WAITALL) != sizeof(struct game)) {
             puts("The connection was closed by the server");
-            exit(EXIT_FAILURE);
+            return;
         }
         /* select column */
         struct net_dat net_dat = {0};
@@ -126,6 +127,45 @@ void client_game_loop(int sv_sock, char player_num) {
         printf("Player%d won\n", the_game.winning_son);
     }
 }
+/* returns 0 in normal cases
+ * returns < 0 on error
+ * -1 could not start socket
+ * -2 could not connect to server
+ * -3 could not contact the server
+ * -4 malformed ip packet */
+int client_lifetime(char *ip_str, int port) {
+#ifdef _WIN32
+        WSADATA wsa_data;
+        SOCKET sv_sock = INVALID_SOCKET;
+        if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
+            return -1;
+        }
+#else
+        int sv_sock;
+#endif
+        sv_sock = connect_for_sock_fd(ip_str, port);
+        if(sv_sock < 0) {
+#ifdef _WIN32
+            WSACleanup();
+#endif
+            return -2;
+        }
+        int player_num;
+        if(recv(sv_sock, &player_num, sizeof(player_num), MSG_WAITALL) < 0) {
+#ifdef _WIN32
+            WSACleanup();
+#endif
+            return -3;
+        }
+        client_game_loop(sv_sock, player_num+1);
+#ifdef _WIN32
+        closesocket(sv_sock);
+        WSACleanup();
+#else
+        close(sv_sock);
+#endif
+        return 0;
+}
 
 void server_game_loop(int player_socks[2]) {
     /* THE game */
@@ -182,35 +222,17 @@ void server_game_loop(int player_socks[2]) {
         }
     }
 }
-
-
-int main(int argc, const char **argv) {
-    /* args: [-s <port> | -c <ip:port>] */
-    /* couch game */
-    if(argc == 1) {
-        do {
-            couch_game_loop();
-            puts("Do you want to play another game? [y/N]");
-        } while(getch() == 'y');
-        exit(EXIT_SUCCESS);
-    }
-    if(argc != 3) {
-        puts("Usage: [-s <port> | -c <ip:port>]");
-        exit(EXIT_FAILURE);
-    }
-    if(!strcmp(argv[1], "-s")) {
-        int portnum = atoi(argv[2]);
-        if(portnum == 0) {
-            printf("%d is not a valid port number\n", portnum);
-            exit(EXIT_FAILURE);
-        }
-        puts("Waiting for Players to connect");
+/* returns 0 when normal
+ * returns < 0 on error
+ * -1 could not start socket
+ * -2 error when client connected */
+int server_lifetime(int portnum) {
 #ifdef _WIN32
         WSADATA wsa_data;
         SOCKET socks[2] = {INVALID_SOCKET, INVALID_SOCKET};
         if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
             puts("Could not start socket");
-            return EXIT_FAILURE;
+            return return -1;
     }
 #else
         int socks[2] = {0};
@@ -218,14 +240,10 @@ int main(int argc, const char **argv) {
         for(int i = 0; i < 2; i++) {
             socks[i] = listen_for_sock_fd(portnum);
             if(socks[i] < 0) {
-                printf("An error occured when waiting for player %d\n", i+1);
-                perror("");
-                exit(EXIT_FAILURE);
+                return -2;
             }
             if(send(socks[i], &i, sizeof(i), 0) < 0) {
-                printf("An error occured when contacting player %d\n", i+1);
-                perror("");
-                exit(EXIT_FAILURE);
+                return -3;
             }
         }
         server_game_loop(socks);
@@ -240,6 +258,69 @@ int main(int argc, const char **argv) {
 #ifdef _WIN32
         WSACleanup();
 #endif
+        return 0;
+}
+
+int main(int argc, const char **argv) {
+    /* args: [-s <port> | -c <ip:port>] */
+    /* couch game */
+    if(argc == 1) {
+        do {
+            couch_game_loop();
+            puts("Do you want to play another game? [y/N]");
+        } while(getch() == 'y');
+        return EXIT_SUCCESS;
+    }
+    if(argc != 3) {
+        puts("Usage: [-s <port> | -c <ip:port>]");
+        return EXIT_FAILURE;
+    }
+    if(!strcmp(argv[1], "-s") || !strcmp(argv[1], "-d")) {
+        int portnum = atoi(argv[2]);
+        if(portnum == 0) {
+            printf("%d is not a valid port number\n", portnum);
+            return EXIT_FAILURE;
+        }
+        puts("Waiting for Players to connect");
+        /* fork magic */
+        /* FIXME *nix only */
+        int i = 1;
+        if(!strcmp(argv[1], "-s")) {
+            if((i = fork()) < 0) {
+                perror("Could not fork the process");
+                return EXIT_FAILURE;
+            }
+        }
+        if(i > 0) {
+            /* parent */
+            switch(server_lifetime(portnum)) {
+                case(-1):
+                perror("Could not start socket");
+                break;
+                case(-2):
+                perror("An error occured when a player connected");
+                break;
+                case(-3):
+                perror("An error occured when contacting a player");
+                break;
+            }
+            kill(i, SIGTERM);
+        }
+        else {
+            /* child */
+            switch(client_lifetime("127.0.0.1", portnum)) {
+                case(-1):
+                perror("Could not start socket");
+                break;
+                case(-2):
+                printf("Could not connect to server at %s\n", argv[2]);
+                perror("");
+                break;
+                case(-3):
+                perror("an error occured when contacting the server");
+                break;
+            }
+        }
     }
     /* code to start a server */
     else if(!strcmp(argv[1], "-c")) {
@@ -267,41 +348,18 @@ int main(int argc, const char **argv) {
                    port_str);
             return EXIT_FAILURE;
         }
-#ifdef _WIN32
-        WSADATA wsa_data;
-        SOCKET sv_sock = INVALID_SOCKET;
-        if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
-            puts("Could not start socket");
-            return EXIT_FAILURE;
-        }
-#else
-        int sv_sock;
-#endif
-        sv_sock = connect_for_sock_fd(ip_str, port);
-        if(sv_sock < 0) {
+        switch(client_lifetime(ip_str, port)) {
+            case(-1):
+            perror("Could not start socket");
+            break;
+            case(-2):
             printf("Could not connect to server at %s\n", argv[2]);
             perror("");
-#ifdef _WIN32
-            WSACleanup();
-#endif
-            return EXIT_FAILURE;
+            break;
+            case(-3):
+            perror("an error occured when contacting the server");
+            break;
         }
-        int player_num;
-        if(recv(sv_sock, &player_num, sizeof(player_num), MSG_WAITALL) < 0) {
-            puts("an error occured when contacting the server");
-            perror("");
-#ifdef _WIN32
-            WSACleanup();
-#endif
-            return EXIT_FAILURE;
-        }
-        client_game_loop(sv_sock, player_num+1);
-#ifdef _WIN32
-        closesocket(sv_sock);
-        WSACleanup();
-#else
-        close(sv_sock);
-#endif
     }
     else {
         printf("invalid argument %s\n", argv[1]);
