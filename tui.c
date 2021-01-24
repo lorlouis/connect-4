@@ -7,6 +7,7 @@
 #define clrscr() system("cls")
 
 #else
+
 #include <unistd.h>
 #include <termios.h>
 
@@ -60,6 +61,11 @@ int select_col_net(struct game *game, struct net_dat *net_dat) {
         case 'q':
             return -1;
         case ' ':
+#ifdef _WIN32
+        case 0x0D:
+#else
+        case '\n':
+#endif
             net_dat->is_push = 1;
     }
     return 0;
