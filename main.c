@@ -58,7 +58,11 @@ void couch_game_loop() {
 }
 
 
+#ifdef _WIN32
+void client_game_loop(SOCKET sv_sock, char player_num) {
+#else
 void client_game_loop(int sv_sock, char player_num) {
+#endif
     struct game the_game = {0};
     /* get game from server */
     while(1) {
@@ -167,7 +171,30 @@ int client_lifetime(char *ip_str, int port) {
         return 0;
 }
 
+#ifdef _WIN32
+void win32_create_thread_client_lifetime_wrapper(LPVOID portnum) {
+
+    Sleep(500);
+    switch (client_lifetime("127.0.0.1", (int)portnum)) {
+		case(-1):
+        perror("Could not start socket");
+        break;
+		case(-2):
+        perror("Could not connect to local server");
+        break;
+		case(-3):
+        perror("an error occured when contacting the server");
+        break;
+    }
+}
+#endif
+
+
+#ifdef _WIN32
+void server_game_loop(SOCKET player_socks[2]) {
+#else
 void server_game_loop(int player_socks[2]) {
+#endif
     /* THE game */
     struct game the_game = {0};
     the_game.current_gamer = 1;
@@ -232,7 +259,7 @@ int server_lifetime(int portnum) {
         SOCKET socks[2] = {INVALID_SOCKET, INVALID_SOCKET};
         if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
             puts("Could not start socket");
-            return return -1;
+            return -1;
     }
 #else
         int socks[2] = {0};
@@ -282,6 +309,41 @@ int main(int argc, const char **argv) {
             return EXIT_FAILURE;
         }
         puts("Waiting for Players to connect");
+#ifdef _WIN32
+		/* win32 thread stuff */
+		HANDLE client_thread;
+		DWORD thread_id;
+        if (!strcmp(argv[1], "-s")) {
+            client_thread = CreateThread(
+                NULL,
+                0,
+                win32_create_thread_client_lifetime_wrapper,
+                portnum,
+                0,
+                &thread_id
+            );
+
+            if (thread_id == 0) {
+                perror("could not start client");
+                return EXIT_FAILURE;
+            }
+        }
+
+		switch(server_lifetime(portnum)) {
+			case(-1):
+			perror("Could not start socket");
+			break;
+			case(-2):
+			perror("An error occured when a player connected");
+			break;
+			case(-3):
+			perror("An error occured when contacting a player");
+			break;
+		}
+        if (!strcmp(argv[1], "-s")) {
+            TerminateThread(thread_id, 0);
+        }
+#else
         /* fork magic */
         /* FIXME *nix only */
         int i = 1;
@@ -321,6 +383,7 @@ int main(int argc, const char **argv) {
                 break;
             }
         }
+#endif
     }
     /* code to start a server */
     else if(!strcmp(argv[1], "-c")) {
