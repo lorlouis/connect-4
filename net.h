@@ -4,7 +4,9 @@
 #include "con4.h"
 
 #define PORT 8080
-
+#ifdef _WIN32
+#include <winsock.h>
+#endif
 struct net_dat {
     int col;
     int is_push;

@@ -6,7 +6,7 @@
 #ifdef _WIN32
 #pragma comment(lib, "Ws2_32.lib")
 #include <io.h>
-
+#include <Windows.h>
 #else
 
 #include <unistd.h>

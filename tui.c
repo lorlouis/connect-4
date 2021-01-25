@@ -4,12 +4,25 @@
 #include <io.h>
 #include <conio.h>
 
-#define clrscr() system("cls")
 
 #else
 
 #include <unistd.h>
 #include <termios.h>
+
+#endif
+
+
+#include "con4.h"
+#include "tui.h"
+#include "net.h"
+
+#ifdef _WIN32
+
+void clrscr(void) {
+    system("cls");
+}
+#else
 
 static struct termios old, new;
 
@@ -38,12 +51,7 @@ char getch() {
     resetTermios();
     return ch;
 }
-
 #endif
-
-#include "con4.h"
-#include "tui.h"
-#include "net.h"
 
 int select_col_net(struct game *game, struct net_dat *net_dat) {
     char c;
