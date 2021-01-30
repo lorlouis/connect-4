@@ -92,6 +92,8 @@ void client_game_loop(int sv_sock, char player_num) {
                 if (select_col_net(&(the_game), &net_dat) < 0) {
                     /* TODO tell the player on the other
                     * side that the game was closed */
+                    perror("The server closed the connection");
+                    return;
                 }
                 if(send(sv_sock, &net_dat, sizeof(struct net_dat), 0) < 0) {
                     perror("");
